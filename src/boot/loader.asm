@@ -3,6 +3,7 @@
 
 start:
     cli
+    mov [DRIVEID],dl
     ; Check A20 line and activate it
     mov ax, 0x2403          ; query A20 gate support
     int 0x15   
@@ -33,6 +34,12 @@ start:
     mov ah, 0
     mov al, 3
     int 0x10
+
+    ; Load kernel at 0x10000
+    mov si, LBA_PACKET      ; load kernel at 0x10000
+    mov ah, 0x42
+    mov dl, 0x80
+    int 0x13
 
     ; Get memory map at 0x8000
     xor ax, ax
@@ -84,6 +91,15 @@ end:
     hlt
     jmp $
 
+DRIVEID: db 0
+LBA_PACKET:
+    db 0x10     ; packet size(16 bytes)
+    db 0        ; always 0
+    dw 100
+    dw 0        ; memory buffer destination 
+    dw 0x1000   ; 0x1000*16+0 = 0x10000
+    dd 2        ; low addr of lba address
+    dd 0        ; high addr of lba address
 
 GDT32DESCRIPTOR:
     dw GDT32END-GDT32-1     ; GDT size -1
@@ -122,7 +138,7 @@ ProtectedModeEntry:
     mov ss, ax
     mov esp, 0x90000
 
-    mov byte [0xb8000], 'P'
-    mov byte [0xb8001], 0x0F
+    mov eax, 0x10000    ; jump to 0x10000
+    jmp eax
 
     jmp $
