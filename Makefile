@@ -3,8 +3,9 @@ OBJ =obj
 
 gcc = /usr/opt/cross/bin/i686-elf-gcc
 ld = /usr/opt/cross/bin/i686-elf-ld
-CFLAGS = -m32 -ffreestanding -Wall -Wextra
-
+CFLAGS = -m32 -ffreestanding -static-libgcc -Wall -Wextra
+LIBGCC = $(shell $(gcc) $(CFLAGS) -print-libgcc-file-name)
+ 
 default: ASM C MAKE_IMG run
 
 ASM:
@@ -13,9 +14,10 @@ ASM:
 
 C:
 	$(gcc) $(CFLAGS) -c src/kernel.c -o $(OBJ)/kernel.o
+	$(gcc) $(CFLAGS) -c src/Lib/print.c -o $(OBJ)/print.o
 
 MAKE_IMG:
-	ld -m elf_i386 -T linker.ld --oformat binary -o $(OBJ)/kernel.bin $(OBJ)/*.o
+	$(ld) -m elf_i386 -T linker.ld --oformat binary -o $(OBJ)/kernel.bin $(OBJ)/*.o $(LIBGCC)
 	dd if=/dev/zero of=os.img bs=1M count=10 conv=notrunc
 	dd if=$(OBJ)/boot.bin of=os.img bs=512 conv=notrunc
 	dd if=$(OBJ)/loader.bin of=os.img bs=512 seek=1 conv=notrunc

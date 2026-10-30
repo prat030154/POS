@@ -1,9 +1,11 @@
+#include "stdint.h"
+#include "Lib/print.h"
+
 void main()
 {
-    char *vga = (char *)0xB8000;
-    vga[0] = 'M';
-    vga[1] = 0x0E;
-
     // freeze
+    print("Hello\n");
+    int64_t t = 3;
+    print("%d %u %x", t, t, t);
     for(;;){}
 }
